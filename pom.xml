@@ -11,16 +11,16 @@
   <name>linmat-labs</name>
 
   <properties>
-    <!-- Maven props -->
+    <!-- maven props -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.target>11</maven.compiler.target>
     <maven.compiler.source>11</maven.compiler.source>
 
-    <!-- Libs -->
+    <!-- versions -->
     <guava.version>20.0</guava.version>
     <junit.jupiter.version>5.4.2</junit.jupiter.version>
     <junit.platform.version>1.4.2</junit.platform.version>
-    <mockito.version>2.23.4</mockito.version>
+    <org.apache.maven.plugins>3.1.0</org.apache.maven.plugins>
   </properties>
 
   <dependencies>
@@ -41,12 +41,25 @@
       <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${org.apache.maven.plugins}</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+              <mainClass>linmat.App</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
