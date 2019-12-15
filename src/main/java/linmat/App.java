@@ -40,6 +40,15 @@ enum Alphabet {
   Alphabet(String description) {
     this.description = description;
   }
+
+  static Alphabet valueOfStr(String value) {
+    switch (value) {
+      case "1": return ONE;
+      case "2": return TWO;
+      case "5": return FIVE;
+      default: return valueOf(value);
+    }
+  }
 }
 
 class DFA {
@@ -72,16 +81,19 @@ public class App {
 
   public static void main(String[] args) throws Exception {
     Map<String, Map<Alphabet, String>> table = loadMovesTable(args[0]);
-    List<Alphabet> inputs = loadInputs(args[1]);
     Set<String> accepts = loadAccepts(args[2]);
     String startState = args[3];
 
+
     DFA dfa = new DFA(table, accepts, startState);
-    inputs.forEach(in -> {
-      dfa.move(in);
-      System.out.println(dfa.getCurrentState());
-    });
-    System.out.println("VALID: " + dfa.isAccepted());
+    Scanner scanner = new Scanner(System.in);
+    while (scanner.hasNext()) {
+      dfa.move(Alphabet.valueOfStr(scanner.next()));
+      System.out.println("Current state: " + dfa.getCurrentState());
+      System.out.println("Available input: " + Arrays.toString(Alphabet.values()) + "\n");
+      System.out.println("VALID: " + dfa.isAccepted());
+    }
+    scanner.close();
   }
 }
 
@@ -104,7 +116,7 @@ class Utils {
     List<Alphabet> inputs = new ArrayList<>();
     while (inputScanner.hasNext()) {
       inputs = Arrays.stream(inputScanner.nextLine().split(","))
-          .map(Alphabet::valueOf)
+          .map(Alphabet::valueOfStr)
           .collect(Collectors.toList());
     }
     inputScanner.close();
