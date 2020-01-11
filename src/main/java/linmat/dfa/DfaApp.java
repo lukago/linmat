@@ -1,25 +1,23 @@
-package linmat;
+package linmat.dfa;
 
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
-import static linmat.Alphabet.BB;
-import static linmat.Alphabet.BB2;
-import static linmat.Alphabet.BS;
-import static linmat.Alphabet.BS2;
-import static linmat.Alphabet.FIVE;
-import static linmat.Alphabet.ONE;
-import static linmat.Alphabet.R;
-import static linmat.Alphabet.TWO;
-import static linmat.Utils.loadAccepts;
-import static linmat.Utils.loadInputs;
-import static linmat.Utils.loadMovesTable;
+import static linmat.dfa.Alphabet.BB;
+import static linmat.dfa.Alphabet.BB2;
+import static linmat.dfa.Alphabet.BS;
+import static linmat.dfa.Alphabet.BS2;
+import static linmat.dfa.Alphabet.FIVE;
+import static linmat.dfa.Alphabet.ONE;
+import static linmat.dfa.Alphabet.R;
+import static linmat.dfa.Alphabet.TWO;
+import static linmat.dfa.Utils.dfaToString;
+import static linmat.dfa.Utils.loadSet;
+import static linmat.dfa.Utils.loadMovesTable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -54,44 +52,52 @@ enum Alphabet {
 class DFA {
   final Map<String, Map<Alphabet, String>> movesTable;
   final Set<String> acceptanceStates;
+  final Set<String> states;
+  final String startState;
+
   private String currentState;
 
   DFA(Map<String, Map<Alphabet, String>> movesTable,
+      Set<String> states,
       Set<String> acceptanceStates,
       String startState) {
     this.movesTable = movesTable;
     this.acceptanceStates = acceptanceStates;
+    this.startState = startState;
     this.currentState = startState;
+    this.states = states;
   }
 
   void move(Alphabet input) {
     currentState = movesTable.get(currentState).get(input);
   }
 
-  String getCurrentState() {
-    return currentState;
-  }
-
   boolean isAccepted() {
     return acceptanceStates.contains(currentState);
   }
+
+  String getCurrentState() {
+    return currentState;
+  }
 }
 
-public class App {
+public class DfaApp {
 
   public static void main(String[] args) throws Exception {
     Map<String, Map<Alphabet, String>> table = loadMovesTable(args[0]);
-    Set<String> accepts = loadAccepts(args[2]);
+    Set<String> states = loadSet(args[1]);
+    Set<String> accepts = loadSet(args[2]);
     String startState = args[3];
 
+    DFA dfa = new DFA(table, states, accepts, startState);
+    System.out.println(dfaToString(dfa));
 
-    DFA dfa = new DFA(table, accepts, startState);
     Scanner scanner = new Scanner(System.in);
     while (scanner.hasNext()) {
       dfa.move(Alphabet.valueOfStr(scanner.next()));
       System.out.println("Current state: " + dfa.getCurrentState());
       System.out.println("Available input: " + Arrays.toString(Alphabet.values()) + "\n");
-      System.out.println("VALID: " + dfa.isAccepted());
+      System.out.println("Accepted: " + dfa.isAccepted());
     }
     scanner.close();
   }
@@ -111,19 +117,7 @@ class Utils {
     return table;
   }
 
-  static List<Alphabet> loadInputs(String path) throws Exception {
-    Scanner inputScanner = new Scanner(new File(path));
-    List<Alphabet> inputs = new ArrayList<>();
-    while (inputScanner.hasNext()) {
-      inputs = Arrays.stream(inputScanner.nextLine().split(","))
-          .map(Alphabet::valueOfStr)
-          .collect(Collectors.toList());
-    }
-    inputScanner.close();
-    return inputs;
-  }
-
-  static Set<String> loadAccepts(String path) throws Exception {
+  static Set<String> loadSet(String path) throws Exception {
     Scanner scanner = new Scanner(new File(path));
     Set<String> accepts = new HashSet<>();
     while (scanner.hasNext()) {
@@ -135,27 +129,46 @@ class Utils {
   }
 
   static String dfaToString(DFA dfa) {
-    StringBuilder moves = new StringBuilder("\nmoves:\n");
-    StringBuilder states = new StringBuilder("\nstates:\n");
-    StringBuilder acceptance = new StringBuilder("\nacceptance:\n");
-    StringBuilder alphabet = new StringBuilder("\nalphabet:\n");
+    StringBuilder moves = new StringBuilder("\"transitions\": [");
+    StringBuilder states = new StringBuilder("\"states\": [");
+    StringBuilder acceptance = new StringBuilder("\"accepting_states\": [");
+    StringBuilder alphabet = new StringBuilder("{\"alphabet\": [");
+    String initialState = "\"initial_state\":\"" + dfa.startState + "\",";
 
     for (var wrd : Alphabet.values()) {
-      alphabet.append(String.format("\"%s\",\n", wrd));
+      alphabet.append(String.format("\"%s\",", wrd));
     }
+    alphabet.append("],");
+
+    for (var state : dfa.states) {
+      states.append(String.format("\"%s\",", state));
+    }
+    states.append("],");
 
     for (var acc : dfa.acceptanceStates) {
-      acceptance.append(String.format("\"%s\",\n", acc));
+      acceptance.append(String.format("\"%s\",", acc));
     }
+    acceptance.append("],");
+
 
     for (var row : dfa.movesTable.entrySet()) {
-      states.append(String.format("\"%s\",\n", row.getKey()));
+      Map<String, String> destinations = new HashMap<>();
+
       for (var entry : row.getValue().entrySet()) {
-        moves.append(String.format("[\"%s\", \"%s\", \"%s\"],\n",
-            row.getKey(), entry.getKey(), entry.getValue()));
+        if (destinations.containsKey(entry.getValue())) {
+          destinations.put(entry.getValue(), destinations.get(entry.getValue()) + "," + entry.getKey());
+        } else {
+          destinations.put(entry.getValue(), entry.getKey().toString());
+        }
+      }
+
+      for (var entry : row.getValue().entrySet()) {
+        moves.append(String.format("[\"%s\", \"%s\", \"%s\"],",
+            row.getKey(), destinations.get(entry.getValue()), entry.getValue()));
       }
     }
+    moves.append("]}");
 
-    return alphabet.toString() + states.toString() + acceptance.toString() + moves.toString();
+    return alphabet.toString() + states.toString() + initialState + acceptance.toString() + moves.toString();
   }
 }

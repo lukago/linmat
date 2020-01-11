@@ -1,0 +1,40 @@
+digraph {
+	fake0 [style=invisible]
+	s2
+	sa
+	sc
+	sd
+	s1
+	se
+	q0 [root=true]
+	s0
+	dw
+	sb
+	s4
+	s3
+	dn
+	fake0 -> q0 [style=bold]
+	s3 -> dn [label=3]
+	s4 -> dn [label=4]
+	dn -> dn [label="0,1,a,2,b,3,c,4,d,e"]
+	sa -> dw [label=a]
+	sb -> dw [label=b]
+	sc -> dw [label=c]
+	sd -> dw [label=d]
+	se -> dw [label=e]
+	dw -> dw [label="0,1,a,2,b,3,c,4,d,e"]
+	s0 -> dn [label=0]
+	s1 -> dn [label=1]
+	q0 -> s0 [label=0]
+	q0 -> s1 [label=1]
+	q0 -> sa [label=a]
+	q0 -> s2 [label=2]
+	q0 -> sb [label=b]
+	q0 -> s3 [label=3]
+	q0 -> sc [label=c]
+	q0 -> s4 [label=4]
+	q0 -> sd [label=d]
+	q0 -> q0 [label="0,1,a,2,b,3,c,4,d,e"]
+	q0 -> se [label=e]
+	s2 -> dn [label=2]
+}

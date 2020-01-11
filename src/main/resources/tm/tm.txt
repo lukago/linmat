@@ -1,0 +1,7 @@
+q0,q1a;-;R,q0;-;R
+q1a,q2a;-;R,q0;-;R
+q2a,q3ab1;b;L,q0;-;R
+q3ab1,q3ab2;b;L,q0;-;R
+q3ab2,q3af1;b;R,q0;-;R
+q3af1,q3af2;-;R,q0;-;R
+q3af2,q1a;-;R,q0;-;R
